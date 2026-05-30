@@ -194,8 +194,7 @@ font-weight: 700;
 font-size: 14px;
 position: relative;
 box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-cursor: pointer;
-transition: all 0.1s ease;
+active: transform: scale(0.96);
 }
 .hw-btn:active {
 background: #0d1117;
@@ -228,44 +227,9 @@ box-shadow: 0 0 8px #2ea44f, inset 0 1px 1px rgba(255,255,255,0.5) !important;
 background-color: #ff9b26 !important;
 box-shadow: 0 0 8px #ff9b26, inset 0 1px 1px rgba(255,255,255,0.5) !important;
 }
-
-/* 연결 상태 인디케이터 */
-#connection-status {
-position: fixed;
-top: 10px;
-right: 10px;
-display: flex;
-align-items: center;
-gap: 8px;
-padding: 8px 12px;
-background: #161b22;
-border: 2px solid #30363d;
-border-radius: 6px;
-font-size: 12px;
-font-weight: 600;
-}
-.status-dot {
-width: 8px;
-height: 8px;
-border-radius: 50%;
-display: inline-block;
-}
-.status-connected {
-background-color: #2ea44f;
-box-shadow: 0 0 8px #2ea44f;
-}
-.status-disconnected {
-background-color: #da3633;
-box-shadow: 0 0 8px #da3633;
-}
 </style>
 </head>
 <body>
-
-<div id="connection-status">
-<span class="status-dot status-disconnected"></span>
-<span id="status-text">연결 중...</span>
-</div>
 
 <div id="throttle-container">
 <div class="throttle-title">THROTTLE</div>
@@ -413,37 +377,14 @@ osc.stop(audioCtx.currentTime + 0.04);
 } catch(e){}
 }
 
-// 연결 상태 관리
-function updateConnectionStatus(connected) {
-const statusDot = document.querySelector('.status-dot');
-const statusText = document.getElementById('status-text');
-if (connected) {
-statusDot.className = 'status-dot status-connected';
-statusText.innerText = 'MSFS 연결됨';
-} else {
-statusDot.className = 'status-dot status-disconnected';
-statusText.innerText = '연결 끊김';
-}
-}
-
 // 로컬 웹소켓 가속 백엔드 통신 서버 인터페이스 연결
-let ws;
-let reconnectAttempts = 0;
-const maxReconnectAttempts = 5;
-const reconnectDelay = 3000;
+const ws = new WebSocket("ws://" + window.location.hostname + ":8765");
 
-function connectWebSocket() {
-ws = new WebSocket("ws://" + window.location.hostname + ":8765");
-
-ws.onopen = () => {
-console.log("MSFS 가속 가민 시스템 동기화 완료.");
-updateConnectionStatus(true);
-reconnectAttempts = 0;
-};
+ws.onopen = () => { console.log("MSFS 가속 가민 시스템 동기화 완료."); };
 
 ws.onmessage = (event) => {
 try {
-const telemetry = JSON.parse(event.data);
+const telemetry = json = JSON.parse(event.data);
 
 // 전광 계기판 지표 실시간 출력 반영
 document.getElementById('val-hdg').innerText = String(telemetry.heading).padStart(3, '0') + "°";
@@ -483,50 +424,19 @@ if (telemetry.loc_state !== undefined) updateLED('led-LOC', telemetry.loc_state 
 if (telemetry.alt_state !== undefined) updateLED('led-ALT', telemetry.alt_state === 1, 'led-active-amber');
 if (telemetry.vs_state !== undefined) updateLED('led-VS', telemetry.vs_state === 1, 'led-active-amber');
 
-} catch (err) {
-console.error('텔레메트리 파싱 오류:', err);
-}
+} catch (err) {}
 };
-
-ws.onerror = (error) => {
-console.error('WebSocket 오류:', error);
-updateConnectionStatus(false);
-};
-
-ws.onclose = () => {
-console.log("WebSocket 연결 종료");
-updateConnectionStatus(false);
-attemptReconnect();
-};
-}
-
-function attemptReconnect() {
-if (reconnectAttempts < maxReconnectAttempts) {
-reconnectAttempts++;
-console.log(`재연결 시도 ${reconnectAttempts}/${maxReconnectAttempts}...`);
-setTimeout(connectWebSocket, reconnectDelay);
-} else {
-console.error('최대 재연결 시도 횟수 초과');
-}
-}
 
 function updateLED(elementId, isActive, activeClass) {
 const el = document.getElementById(elementId);
 if (!el) return;
-el.className = isActive ? `led-indicator ${activeClass}` : "led-indicator";
+el.className = isActive ? led-indicator ${activeClass} : "led-indicator";
 }
 
 function sendControl(actionName) {
 playClickSound();
-if (ws && ws.readyState === WebSocket.OPEN) {
-ws.send(JSON.stringify({ "action": actionName }));
-} else {
-console.warn('WebSocket이 연결되지 않음');
+if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ "action": actionName }));
 }
-}
-
-// 초기 연결 시도
-connectWebSocket();
 </script>
 </body>
 </html>
