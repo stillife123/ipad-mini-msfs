@@ -1,0 +1,28 @@
+{
+  "name": "ipad-mini-msfs",
+  "version": "1.0.0",
+  "description": "iPad mini Advanced Glass Cockpit Controller for Microsoft Flight Simulator",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "msfs",
+    "flight-simulator",
+    "glass-cockpit",
+    "ipad",
+    "websocket"
+  ],
+  "author": "stillife123",
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^8.15.0"
+  },
+  "devDependencies": {
+    "simconnect": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
